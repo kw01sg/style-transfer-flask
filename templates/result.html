@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="text-center">
+        <figure class="figure">
+            <img src="{{ url_for('static', filename='output/' + output_path) }}" class=" figure-img img-fluid"
+                alt="Output path">
+            <figcaption class="figure-caption text-left">Time taken to generate output: {{ total_time }}</figcaption>
+        </figure>
+    </div>
+</div>
+{% endblock %}
