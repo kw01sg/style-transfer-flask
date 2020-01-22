@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container">
+    <form action="/transform" method="POST">
+        <div class="container" id="images">
+            <div class="form-group">
+                <div class="row justify-content-center">
+                    <label class='col-md-2 col-form-label pt-0' for="content_image">Content Image</label>
+                    <div class="col-md-6">
+                        <input type="file" class="form-control-file" id="content_image" name="content_image">
+                    </div>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-md-2"></div>
+                    <small class="form-text text-muted col-md-6">
+                        Content image
+                    </small>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="row justify-content-center">
+                    <label class='col-md-2 col-form-label pt-0' for="style_image">Style Image</label>
+                    <div class="col-md-6">
+                        <input type="file" class="form-control-file" id="style_image" name="style_image">
+                    </div>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-md-2"></div>
+                    <small class="form-text text-muted col-md-6">
+                        Style image
+                    </small>
+                </div>
+            </div>
+        </div>
+        <div class="container" id="options">
+            <div class="form-group">
+                <div class="row justify-content-center">
+                    <label class='col-md-2 col-form-label' for="content_weight">Content Weight</label>
+                    <div class="col-md-6">
+                        <input type="text" class="form-control" id="content_weight" name='content_weight' value="1e-3">
+                    </div>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-md-2"></div>
+                    <small class="form-text text-muted col-md-6">
+                        Content weight. Default: 1e-3
+                    </small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="row justify-content-center">
+                    <label class='col-md-2 col-form-label' for="style_weight">Style Weight</label>
+                    <div class="col-md-6">
+                        <input type="text" class="form-control" id="style_weight" name='style_weight' value="1.0">
+                    </div>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-md-2"></div>
+                    <small class="form-text text-muted col-md-6">
+                        Style weight. Default: 1.0
+                    </small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="row justify-content-center">
+                    <label class='col-md-2 col-form-label' for="variation_weight">Variation Weight</label>
+                    <div class="col-md-6">
+                        <input type="text" class="form-control" id="variation_weight" name='variation_weight'
+                            value="1e4">
+                    </div>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-md-2"></div>
+                    <small class="form-text text-muted col-md-6">
+                        Variation weight. Default: 1e4
+                    </small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="row justify-content-center">
+                    <label class='col-md-2 col-form-label' for="style_layer_weights">Style Layers Weights</label>
+                    <div class="col-md-6">
+                        <input type="text" class="form-control" id="style_layer_weights" name='style_layer_weights'
+                            value="1 1 1 1 1">
+                    </div>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-md-2"></div>
+                    <small class="form-text text-muted col-md-6">
+                        Weights for individual layers in style layers. Will be normalized before calculation of style
+                        loss.
+                        Default: 1 1 1 1 1
+                    </small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="row justify-content-center">
+                    <label class='col-md-2 col-form-label' for="learning_rate">Learning Rate</label>
+                    <div class="col-md-6">
+                        <input type="text" class="form-control" id="learning_rate" name='learning_rate' value="10.0">
+                    </div>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-md-2"></div>
+                    <small class="form-text text-muted col-md-6">
+                        Learning rate for Adam optimizer. Default: 10.0
+                    </small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="row justify-content-center">
+                    <label class='col-md-2 col-form-label' for="epochs">Epochs</label>
+                    <div class="col-md-6">
+                        <input type="number" class="form-control" id="epochs" name='epochs' value="10">
+                    </div>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-md-2"></div>
+                    <small class="form-text text-muted col-md-6">
+                        Number of epochs. Default: 10
+                    </small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="row justify-content-center">
+                    <label class='col-md-2 col-form-label' for="steps">Steps</label>
+                    <div class="col-md-6">
+                        <input type="number" class="form-control" id="steps" name='steps' value="100">
+                    </div>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-md-2"></div>
+                    <small class="form-text text-muted col-md-6">
+                        Number of steps per epoch. Default: 100
+                    </small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="row justify-content-center">
+                    <label class='col-md-2' for="white_noise_input">White Noise Input</label>
+                    <div class="col-md-6">
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="white_noise_input"
+                                name="white_noise_input">
+                            <label class="custom-control-label" for="white_noise_input"></label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-md-2"></div>
+                    <small class="form-text text-muted col-md-6">
+                        Use white noise image as initial image. If false, content image will be used as initial image
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <button type="submit" class="btn btn-primary float-right">Submit</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
