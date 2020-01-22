@@ -17,9 +17,24 @@
 <body>
     <!-- https://getbootstrap.com/docs/4.4/components/jumbotron/ -->
     <div class="jumbotron">
-        <h1 class="display-4 text-center">
-            Neural Style Transfer
-        </h1>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-2"></div>
+                <div class="col-md-8">
+                    <h1 class="display-4"><a href="{{ url_for('index') }}">Neural Style Transfer</a></h1>
+                    <p class="lead">Implementation of Neural Style Transfer from the paper
+                        <a href="https://arxiv.org/abs/1508.06576" target="_blank">
+                            A Neural Algorithm of Artistic Style</a>
+                        <i>(Gatys et al.)</i> in Tensorflow 2.0.</p>
+                    <!-- <hr class="my-4">
+                    <p>It uses utility classes for typography and spacing to space content out within the larger
+                        container.</p> -->
+                    <a class="btn btn-primary btn-lg" href="https://github.com/kw01sg/neural-style-transfer"
+                        role="button" target="_blank">Learn more</a>
+                </div>
+                <div class="col-md-2"></div>
+            </div>
+        </div>
     </div>
 
     {% block content %}
