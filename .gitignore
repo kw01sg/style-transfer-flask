@@ -132,4 +132,7 @@ dmypy.json
 .vscode/
 
 # temp files
-tmp*.png
+tmp/*
+
+# redis files
+*.rdb

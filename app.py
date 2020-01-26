@@ -8,29 +8,16 @@ from flask import (Flask, flash, jsonify, redirect, render_template, request,
                    url_for)
 from werkzeug.utils import secure_filename
 
-from src.model import VGG19Model
-from src.utils import (get_white_noise_image, load_image, print_progress,
-                       save_image)
+from tasks import add, clean_up_temp_images, get_output_image
 
 # set logging level as tf.logging is removed in tf 2.0
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
-# Content layer where we will pull our feature maps
-CONTENT_LAYERS = ['block4_conv2']
-
-# Style layer we are interested in
-STYLE_LAYERS = ['block1_conv1',
-                'block2_conv1',
-                'block3_conv1',
-                'block4_conv1',
-                'block5_conv1']
-
-# global variable so model is loaded before requests come in
-style_content_model = VGG19Model(CONTENT_LAYERS, STYLE_LAYERS)
-
 app = Flask(__name__)
+# app.config['CELERY_BROKER_URL'] = 'pyamqp://'
+# app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
 
 
 def allowed_file(filename):
@@ -58,23 +45,64 @@ def transform():
 
         try:
             options = get_options(request.form)
-            start_time = time.time()
-            with NamedTemporaryFile(dir='./tmp') as content_file, NamedTemporaryFile(dir='./tmp') as style_file:
+            print('Running neural style transfer with the following parameters:')
+            print()
+
+            for key, value in options.items():
+                print('\t{key}: {value}'.format(key=key, value=value))
+            print()
+
+            with NamedTemporaryFile(dir='./tmp', delete=False) as content_file, \
+                    NamedTemporaryFile(dir='./tmp', delete=False) as style_file:
                 content_image.save(content_file.name)
                 style_image.save(style_file.name)
-                output_file_path = get_output_image(
-                    content_file.name, style_file.name, options)
-            end_time = time.time()
-            print("Total time: {:.1f}s".format(end_time-start_time))
 
-            return render_template('result.html',
-                                   output_path=output_file_path,
-                                   total_time='{:.1f}s'.format(end_time-start_time))
+            with app.app_context():
+                task = get_output_image.apply_async(
+                    (content_file.name,
+                     style_file.name,
+                     options), link=clean_up_temp_images.si(content_file.name,
+                                                            style_file.name))
+
+            return redirect(url_for('status', task_id=task.id))
 
         except Exception as error:
             print(error)
 
         return redirect(url_for('index'))
+
+
+@app.route('/status/<task_id>', methods=['GET', 'POST'])
+def status(task_id):
+    if request.method == 'POST':
+        task = get_output_image.AsyncResult(task_id)
+
+        if task.state == 'SUCCESS':
+            response = {
+                'state': 'SUCCESS',
+                'elapsed_time': task.result['total_time']
+            }
+            return jsonify(response)
+        elif task.state != 'PENDING':
+            response = {
+                'state': task.state,
+                'current': task.info['current'],
+                'total': task.info['total'],
+                'elapsed_time': task.info['elapsed_time']
+            }
+            return jsonify(response)
+        else:
+            return jsonify({'state': task.state})
+    return render_template('status.html', task_id=task_id)
+
+
+@app.route('/result/<task_id>')
+def result(task_id):
+    task = get_output_image.AsyncResult(task_id)
+    result = task.result
+    return render_template('result.html',
+                           output_path=Path(result['output_path']).name,
+                           total_time=result['total_time'])
 
 
 def get_options(options):
@@ -100,50 +128,3 @@ def get_options(options):
         result['white_noise_input'] = False
 
     return result
-
-
-def get_output_image(content_path, style_path, options: dict):
-    print('Running neural style transfer with the following parameters:')
-    print()
-
-    for key, value in options.items():
-        print('\t{key}: {value}'.format(key=key, value=value))
-    print()
-
-    content_image, style_image = [load_image(
-        path) for path in (content_path, style_path)]
-
-    image = tf.Variable(get_white_noise_image(tf.shape(content_image)[1:])) \
-        if options['white_noise_input'] else tf.Variable(content_image)
-
-    style_targets = style_content_model(style_image)['style_outputs']
-    content_targets = style_content_model(content_image)['content_outputs']
-
-    opt = tf.keras.optimizers.Adam(
-        learning_rate=options['learning_rate'], beta_1=0.99, epsilon=1e-1)
-
-    style_content_model.compile(opt)
-
-    for epoch in range(options['epochs']):
-        epoch_start_time = time.time()
-        for step in range(options['steps']):
-            style_content_model.fit(image,
-                                    content_targets=content_targets,
-                                    style_targets=style_targets,
-                                    content_layer_weights=[1],
-                                    style_layer_weights=options['style_layer_weights'],
-                                    content_weight=options['content_weight'],
-                                    style_weight=options['style_weight'],
-                                    variation_weight=options['variation_weight'])
-            # printing in the loop as fit statement prints logs that causes epoch 0 statement to be separated from progress bar
-            if step == 0:
-                print('Epoch {epoch}/{epochs}'.format(
-                    epoch=epoch+1, epochs=options['epochs']))
-
-            print_progress(current_step=step+1, total_steps=options['steps'],
-                           epoch_start_time=epoch_start_time)
-
-    with NamedTemporaryFile(dir='./static/output') as output_file:
-        save_image(image, Path(output_file.name + '.png'))
-
-    return Path(output_file.name + '.png').name

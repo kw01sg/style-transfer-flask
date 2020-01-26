@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+
+{% block head %}
+<script src="{{ url_for('static', filename='status.js') }}"></script>
+<script>
+    $(document).ready(function () {
+        var success_callback = function () {
+            window.location.replace("{{ url_for('result', task_id=task_id) }}");
+        };
+
+        var failure_callback = function () {
+            setTimeout(function () {
+                send_post_request("{{ url_for('status', task_id=task_id) }}", success_callback, failure_callback);
+            }, 4000);
+        };
+
+        send_post_request("{{ url_for('status', task_id=task_id) }}", success_callback, failure_callback);
+    });
+</script>
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 mb-4">
+            <h1 class="text-center">Generating Output ...</h1>
+        </div>
+        <div class="progress col-md-8 px-0 mb-4" style="height: 20px;">
+            <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0"
+                aria-valuemax="100">0%</div>
+        </div>
+        <div class="col-md-8 text-center">
+            <p class="lead d-inline">Task ID: </p>
+            <p class="lead d-inline" id="task-id">{{ task_id }}</p>
+        </div>
+        <div class="col-md-8 text-center">
+            <p class="lead d-inline">Elapsed time: </p>
+            <p class="lead d-inline" id="elapsed-time">0s</p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
