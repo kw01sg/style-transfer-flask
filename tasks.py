@@ -4,6 +4,7 @@ from pathlib import Path
 
 import tensorflow as tf
 from celery import Celery
+from dotenv import load_dotenv
 
 from src.model import VGG19Model
 from src.utils import (get_white_noise_image, load_image, print_progress,
@@ -19,9 +20,11 @@ STYLE_LAYERS = ['block1_conv1',
                 'block4_conv1',
                 'block5_conv1']
 
+load_dotenv()
+
 celery = Celery(__name__,
-                backend='redis://localhost:6379/0',
-                broker='pyamqp://')
+                backend=os.environ.get('CELERY_RESULT_BACKEND', ''),
+                broker=os.environ.get('CELERY_BROKER_URL', ''))
 
 
 @celery.task(bind=True)

@@ -134,5 +134,8 @@ dmypy.json
 # temp files
 tmp/*
 
+# output files
+static/output/*.png
+
 # redis files
 *.rdb

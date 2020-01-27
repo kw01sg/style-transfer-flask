@@ -10,14 +10,20 @@ from werkzeug.utils import secure_filename
 
 from tasks import add, clean_up_temp_images, get_output_image
 
+SECRET_KEY = os.environ.get("SECRET_KEY")
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
 # set logging level as tf.logging is removed in tf 2.0
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+SECRET_KEY = os.environ.get("SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError("No SECRET_KEY set for Flask application")
 
 app = Flask(__name__)
-# app.config['CELERY_BROKER_URL'] = 'pyamqp://'
-# app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
+# TODO: Integrate flask with celery to use app.config
+
+app.secret_key = SECRET_KEY
 
 
 def allowed_file(filename):
@@ -51,6 +57,12 @@ def transform():
             for key, value in options.items():
                 print('\t{key}: {value}'.format(key=key, value=value))
             print()
+
+            if not Path('./tmp').exists():
+                Path('./tmp').mkdir()
+
+            if not Path('./static/output').exists():
+                Path('./static/output').mkdir()
 
             with NamedTemporaryFile(dir='./tmp', delete=False) as content_file, \
                     NamedTemporaryFile(dir='./tmp', delete=False) as style_file:
