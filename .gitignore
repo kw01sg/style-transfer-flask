@@ -139,3 +139,6 @@ static/output/*.png
 
 # redis files
 *.rdb
+
+# supervisord
+supervisord.pid
