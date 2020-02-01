@@ -21,9 +21,19 @@ For a more detailed description of how to install Celery, please refer to the of
 
 I use RabbitMQ as a broker and Redis as a result backend. After installation, the broker runs in the background by default. You just have to start the redis server.
 
+To disable the RabbitMQ service that starts up on boot:
+```
+$ sudo systemctl disable rabbitmq-server
+```
+
+If you need to run the RabbitMQ broker:
+```
+$ sudo rabbitmq-server
+```
+
 You can now run the Celery worker server:
 ```
-celery -A tasks worker --loglevel=info
+$ celery -A tasks worker --loglevel=info
 ```
 
 I used default values for the celery broker url (`pyamqp://`) and result backend (`redis://localhost:6379/0`). To set your own, just update the relevant values in the `.env` file.
@@ -43,6 +53,14 @@ $ flask run --host=0.0.0.0
 ### Using Supervisor to run Celery and Flask in the background
 Run Supervisor with [`supervisord.conf`](supervisord.conf) as the config file:
 ```
-$ supervisord
+$ sudo PATH=$PATH $BINDIR/supervisord -c ./supervisord.conf
 ```
+`BINDIR` directory is the directory that your Python installation has been configured with. For example, for an installation of Python installed via `./configure --prefix=/usr/local/py; make; make install`, `BINDIR` would be `/usr/local/py/bin`. For more information about how to run Supervisor, you can refer to their [official documentation](http://supervisord.org/running.html).
+
 `supervisorctl` can then be used as an interface to the features provided by supervisord.
+
+
+#### Script to stop rabbitmq
+For some reason unknown to me, Supervisor does not properly terminate the rabbitmq process when it tries to stop its child processes.
+
+To solve this problem, a [script](scripts/rabbitmq.sh) is written to manually run `rabbitmqctl stop`.
