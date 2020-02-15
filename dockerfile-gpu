@@ -1,0 +1,6 @@
+FROM tensorflow/tensorflow:2.0.1-gpu
+WORKDIR /code
+COPY . .
+# Requires the latest pip for tensorflow 2
+RUN pip install --upgrade pip
+RUN pip install -r requirements_gpu.txt

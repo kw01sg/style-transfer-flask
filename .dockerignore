@@ -15,3 +15,9 @@ coverage.xml
 *,cover
 *.log
 .git
+
+# temp files
+tmp/*
+
+# output files
+static/output/*.png
