@@ -1,0 +1,29 @@
+version: '3'
+services: 
+    web:
+        build: .
+        ports: 
+            - "5000:5000"
+        env_file: .env
+        volumes: 
+            - ./tmp:/code/tmp
+            - ./static/output:/code/static/output
+        depends_on: 
+            - celery
+
+    celery:
+        build: .
+        command: "celery -A tasks worker -c 1 --loglevel=info"
+        env_file: .env
+        volumes: 
+            - ./tmp:/code/tmp
+            - ./static/output:/code/static/output
+        depends_on: 
+            - redis
+            - rabbitmq
+
+    redis:
+        image: "redis:alpine"
+
+    rabbitmq:
+        image: "rabbitmq:3.7-alpine"
