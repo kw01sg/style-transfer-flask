@@ -23,7 +23,7 @@ amqp://myuser:mypassword@localhost:5672/myvhost
 where `guest` and `guest` are used as defaults from the `rabbitmq` image. Update the `.env` file if required.
 
 ### Running
-Because dependencies are setup using services, running the app is straight forward. The only complex option is running Tensorflow on GPU, as docker-compose does not support gpu option as of writing this readme.
+Because dependencies are setup using services, running the app is straight forward. The only complex procedure is running Tensorflow on GPU, as docker-compose does not support gpu option as of writing this readme.
 
 This means that we cannot just use `docker-compose up` to run the app, but have to follow certain steps:
 
