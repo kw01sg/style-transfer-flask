@@ -1,5 +1,4 @@
 Pillow==6.2.0
-tensorflow==2.1.0
 celery==4.4.0
 Flask==1.1.1
 redis==3.3.11
