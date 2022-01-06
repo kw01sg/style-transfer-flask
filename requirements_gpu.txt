@@ -1,5 +1,5 @@
 Pillow==6.2.0
-celery==4.4.0
+celery==5.2.2
 Flask==1.1.1
 redis==3.3.11
 python-dotenv==0.10.5
